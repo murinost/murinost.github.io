@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Муринский переводчик</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap">
+  <style>
+    :root {
+      --accent: #8b5cf6;
+      --bg: #ffffff;
+      --text: #202124;
+      --gray: #5f6368;
+      --light: #dadce0;
+      --input: #f1f3f4;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: 'Google Sans', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      height: 64px;
+      padding: 0 20px;
+      background: white;
+      border-bottom: 1px solid var(--light);
+      display: flex;
+      align-items: center;
+    }
+    .logo {
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--accent);
+    }
+    main {
+      flex: 1;
+      padding: 20px;
+      max-width: 960px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    .translator {
+      border: 1px solid var(--light);
+      border-radius: 8px;
+      overflow: hidden;
+      background: white;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+    .lang-row {
+      padding: 12px 16px;
+      background: #f8f9fa;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-weight: 500;
+      color: var(--accent);
+      border-bottom: 1px solid var(--light);
+    }
+    .swap-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 1px solid var(--light);
+      background: white;
+      font-size: 20px;
+      color: var(--accent);
+      cursor: pointer;
+    }
+    .swap-btn:hover { background: #f0e8ff; }
+    .area {
+      position: relative;
+    }
+    textarea, #output {
+      width: 100%;
+      min-height: 220px;
+      padding: 18px 16px;
+      font-size: 19px;
+      line-height: 1.48;
+      border: none;
+      outline: none;
+      resize: vertical;
+      background: var(--input);
+      font-family: inherit;
+    }
+    #output {
+      background: white;
+      border-top: 1px solid var(--light);
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+    .actions {
+      position: absolute;
+      bottom: 12px;
+      right: 16px;
+      display: flex;
+      gap: 16px;
+    }
+    .btn {
+      background: none;
+      border: none;
+      font-size: 20px;
+      color: var(--gray);
+      cursor: pointer;
+    }
+    .btn:hover { color: var(--accent); }
+    .status-bar {
+      padding: 10px 16px;
+      font-size: 13px;
+      color: var(--gray);
+      background: #f8f9fa;
+      border-top: 1px solid var(--light);
+    }
+    footer {
+      padding: 16px;
+      text-align: center;
+      color: var(--gray);
+      font-size: 13px;
+      border-top: 1px solid var(--light);
+      margin-top: auto;
+    }
+    footer a { color: var(--accent); text-decoration: none; }
+    @media (max-width: 640px) {
+      .lang-row { flex-wrap: wrap; gap: 12px; justify-content: center; }
+      main { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Муринский переводчик</div>
+</header>
+
+<main>
+  <div class="translator">
+    <div class="lang-row">
+      <span id="from">Русский</span>
+      <button class="swap-btn" id="swap">↔</button>
+      <span id="to">Муринский</span>
+    </div>
+
+    <div class="area">
+      <textarea id="input" placeholder="Введите текст..." autofocus></textarea>
+      <div class="actions">
+        <button class="btn" title="Очистить" id="clear">❌</button>
+      </div>
+    </div>
+
+    <div id="output">Перевод появится здесь...</div>
+
+    <div class="status-bar" id="status">Ожидаю ввода...</div>
+  </div>
+</main>
+
+<footer>
+  TikTok • <a href="https://tiktok.com/@molochnoye" target="_blank">@molochnoye</a>
+</footer>
+
+<script>
+const dict = {
+  "я": "ч",
+  "друг": "друн",
+  "папа": "батч",
+  "мама": "мамп",
+  "баня": "банька",
+  "мурино": "мурино",
+  "молочное": "молочное",
+  "мытищи": "мытищи",
+  "меллстрой": "меллстройность",
+  "дед": "дод"
+};
+
+let forward = true;
+
+const input = document.getElementById("input");
+const output = document.getElementById("output");
+const swapBtn = document.getElementById("swap");
+const fromEl = document.getElementById("from");
+const toEl = document.getElementById("to");
+const clearBtn = document.getElementById("clear");
+
+function addOst(word){
+  if(!word) return word;
+  if(word.endsWith("ость")) return word;
+  return word + "ость";
+}
+
+function toMurin(text){
+
+  let words = text.toLowerCase().match(/[а-яё]+/gi);
+
+  if(!words) return text;
+
+  let translated = words.map(word => {
+
+    if(dict[word]){
+      word = dict[word];
+    }
+
+    word = addOst(word);
+
+    return word;
+  });
+
+  return translated.join(" ");
+}
+
+function fromMurin(text){
+
+  let words = text.toLowerCase().match(/[а-яё]+/gi);
+
+  if(!words) return text;
+
+  let translated = words.map(word => {
+
+    word = word.replace(/ость$/,"");
+
+    Object.entries(dict).forEach(([k,v])=>{
+      if(word === v) word = k;
+    });
+
+    return word;
+  });
+
+  return translated.join(" ");
+}
+
+function translate(){
+
+  const txt = input.value.trim();
+
+  if(!txt){
+    output.textContent = "Перевод появится здесь...";
+    return;
+  }
+
+  output.textContent = forward ? toMurin(txt) : fromMurin(txt);
+}
+
+swapBtn.onclick = ()=>{
+  forward = !forward;
+
+  fromEl.textContent = forward ? "Русский" : "Муринский";
+  toEl.textContent = forward ? "Муринский" : "Русский";
+
+  translate();
+};
+
+clearBtn.onclick = () => {
+  input.value = "";
+  translate();
+};
+
+input.addEventListener("input", translate);
+
+translate(); // начальный вызов
+</script>
+
+</body>
+</html>
