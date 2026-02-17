@@ -123,10 +123,6 @@
       margin-top: auto;
     }
     footer a { color: var(--accent); text-decoration: none; }
-    @media (max-width: 640px) {
-      .lang-row { flex-wrap: wrap; gap: 12px; justify-content: center; }
-      main { padding: 16px; }
-    }
   </style>
 </head>
 <body>
@@ -153,16 +149,6 @@
     <div id="output">Перевод появится здесь...</div>
 
     <div class="status-bar">Ожидаю ввода...</div>
-
-    <div style="padding:16px; border-top:1px solid var(--light);">
-      <label style="font-size:14px; color:var(--gray);">
-        Вероятность удвоения букв:
-        <span id="chanceValue">30%</span>
-      </label>
-      <input type="range" id="doubleChance" min="0" max="100" value="30"
-             style="width:100%; margin-top:8px;">
-    </div>
-
   </div>
 </main>
 
@@ -193,24 +179,12 @@ const fromEl = document.getElementById("from");
 const toEl = document.getElementById("to");
 const clearBtn = document.getElementById("clear");
 
-const chanceSlider = document.getElementById("doubleChance");
-const chanceValue = document.getElementById("chanceValue");
-
-let doubleChance = 30;
-
-chanceSlider.oninput = () => {
-  doubleChance = parseInt(chanceSlider.value);
-  chanceValue.textContent = doubleChance + "%";
-};
-
 // проверка гласной
 function endsWithVowel(word){
   return /[аеёиоуыэюя]$/i.test(word);
 }
 
-// НОВОЕ правило окончаний:
-// согласная → "ость"
-// гласная → "сть"
+// правило окончаний
 function addEnding(word, originalWord){
 
   if(dict[originalWord]) return word;
@@ -224,10 +198,10 @@ function addEnding(word, originalWord){
   }
 }
 
-// грамотное удвоение
+// грамотное удвоение (фиксированное, редкое)
 function randomDoubleLetter(word){
 
-  if(Math.random() >= doubleChance / 100) return word;
+  if(Math.random() > 0.35) return word;
 
   let doubledIndexes = [];
 
