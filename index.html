@@ -152,7 +152,17 @@
 
     <div id="output">Перевод появится здесь...</div>
 
-    <div class="status-bar" id="status">Ожидаю ввода...</div>
+    <div class="status-bar">Ожидаю ввода...</div>
+
+    <div style="padding:16px; border-top:1px solid var(--light);">
+      <label style="font-size:14px; color:var(--gray);">
+        Вероятность удвоения букв:
+        <span id="chanceValue">30%</span>
+      </label>
+      <input type="range" id="doubleChance" min="0" max="100" value="30"
+             style="width:100%; margin-top:8px;">
+    </div>
+
   </div>
 </main>
 
@@ -183,25 +193,73 @@ const fromEl = document.getElementById("from");
 const toEl = document.getElementById("to");
 const clearBtn = document.getElementById("clear");
 
-function addOst(word){
-  if(!word) return word;
-  if(word.endsWith("ость")) return word;
-  return word + "ость";
+const chanceSlider = document.getElementById("doubleChance");
+const chanceValue = document.getElementById("chanceValue");
+
+let doubleChance = 30;
+
+chanceSlider.oninput = () => {
+  doubleChance = parseInt(chanceSlider.value);
+  chanceValue.textContent = doubleChance + "%";
+};
+
+// проверка гласной
+function endsWithVowel(word){
+  return /[аеёиоуыэюя]$/i.test(word);
+}
+
+// НОВОЕ правило окончаний:
+// согласная → "ость"
+// гласная → "сть"
+function addEnding(word, originalWord){
+
+  if(dict[originalWord]) return word;
+
+  if(word.endsWith("сть") || word.endsWith("ость")) return word;
+
+  if(endsWithVowel(word)){
+    return word + "сть";
+  } else {
+    return word + "ость";
+  }
+}
+
+// грамотное удвоение
+function randomDoubleLetter(word){
+
+  if(Math.random() >= doubleChance / 100) return word;
+
+  let doubledIndexes = [];
+
+  for(let i = 0; i < word.length - 1; i++){
+    if(word[i] === word[i+1]){
+      doubledIndexes.push(i);
+    }
+  }
+
+  if(doubledIndexes.length === 0) return word;
+
+  const index = doubledIndexes[Math.floor(Math.random() * doubledIndexes.length)];
+  const letter = word[index];
+
+  return word.slice(0, index) + letter + word.slice(index);
 }
 
 function toMurin(text){
 
   let words = text.toLowerCase().match(/[а-яё]+/gi);
-
   if(!words) return text;
 
-  let translated = words.map(word => {
+  let translated = words.map(originalWord => {
+
+    let word = originalWord;
 
     if(dict[word]){
-      word = dict[word];
+      return dict[word];
     }
 
-    word = addOst(word);
+    word = randomDoubleLetter(word);
+    word = addEnding(word, originalWord);
 
     return word;
   });
@@ -212,12 +270,12 @@ function toMurin(text){
 function fromMurin(text){
 
   let words = text.toLowerCase().match(/[а-яё]+/gi);
-
   if(!words) return text;
 
   let translated = words.map(word => {
 
     word = word.replace(/ость$/,"");
+    word = word.replace(/сть$/,"");
 
     Object.entries(dict).forEach(([k,v])=>{
       if(word === v) word = k;
@@ -257,7 +315,7 @@ clearBtn.onclick = () => {
 
 input.addEventListener("input", translate);
 
-translate(); // начальный вызов
+translate();
 </script>
 
 </body>
