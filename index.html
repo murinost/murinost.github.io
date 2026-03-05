@@ -92,7 +92,7 @@ textarea,#output{
   height:36px;
   cursor:pointer;
   color:#fff;
-  z-index:10; /* кнопка теперь кликабельная */
+  z-index:10;
 }
 .status-bar{
   padding:10px 16px;font-size:13px;
@@ -145,10 +145,11 @@ footer a{color:#fff;text-decoration:none;}
 
 <script>
 const dict = {
-  "я": "ч",
   "друг": "друн",
-  "жена": "жинка",
+  "друзья": "друны",
   "подруга": "подруня",
+  "подруги": "подруны",
+  "жена": "жинка",
   "сын": "сыр",
   "батя": "батч",
   "папа": "батч",
@@ -160,18 +161,10 @@ const dict = {
   "баня": "банька"
 };
 
-// слова которые не переводим
+const pronouns = ["я","ты","он","она","оно","мы","вы","они","меня","тебя","его","её","нас","вас","их"];
+
 const noTranslate = ["мурино","молочное","мытищи"];
-
-// короткие служебные слова
 const serviceWords = ["с","со","к","ко","в","во","на","по","за","от","до","из","под","над","о","об","про","при","для","у"];
-
-// исключения со склонением
-const exceptions = {
-  "друг": {"друг":"друн","друга":"друн","другу":"друн","другом":"друн"},
-  "жена": {"жена":"жинка","жены":"жинки","жену":"жинку"},
-  "мама": {"мама":"матч","мамы":"матча","маму":"матчу"}
-};
 
 let forward = true;
 
@@ -185,26 +178,21 @@ const cameraBtn = document.getElementById("cameraBtn");
 const photoInput = document.getElementById("photoInput");
 const statusBar = document.querySelector(".status-bar");
 
-// ---------- Новый код кнопки камеры ----------
 cameraBtn.onclick = () => photoInput.click();
 
 photoInput.addEventListener("change", async function() {
   const files = Array.from(this.files);
   if (!files.length) return;
-
   statusBar.textContent = "Распознаю текст...";
   let fullText = "";
-
   for (let i = 0; i < files.length; i++) {
     const result = await Tesseract.recognize(files[i], 'rus');
     fullText += result.data.text.trim() + " ";
   }
-
   input.value = fullText.trim();
   statusBar.textContent = "Текст распознан!";
   translate();
 });
-// -------------------------------------------
 
 function preserveCase(original, translated) {
   if(original[0] === original[0].toUpperCase()){
@@ -214,63 +202,60 @@ function preserveCase(original, translated) {
 }
 
 function isNoun(word){
-  if(/(ый|ий|ой|ая|яя|ое|ее|ые|ие|ого|его|ому|ему|ым|им|ыми|ими)$/i.test(word)) return false;
-  if(/(ать|ять|еть|ить|ыть|ти|чь)$/i.test(word)) return false;
-  if(/(у|ю|ешь|ёшь|ится|ите|им|ат|ят|ут|ют|ет|ем|ете)$/i.test(word)) return false;
-  if(/(л|ла|ло|ли)$/i.test(word)) return false;
-  if(/(вший|ющий|ящий|емый|имый|анный|енный)$/i.test(word)) return false;
-  if(/(я|ты|он|она|оно|мы|вы|они|меня|тебя|его|её|нас|вас|их)$/i.test(word)) return false;
-  if(/(один|два|три|четыре|пять|шесть|семь|восемь|девять|десять)$/i.test(word)) return false;
-  return true;
+  return !/(ать|ять|ить|еть|ешь|ишь|ют|ут|ет|ем|ите|ый|ий|ая|ое|ые|ие)$/i.test(word);
 }
 
 function addEnding(word){
   if(dict[word]) return dict[word];
   if(!isNoun(word)) return word;
+
   if(word.endsWith("т")) return word + "ность";
   if(word.endsWith("о")){
-    const before = word[word.length - 2];
-    if(["к","п","с","т","ф","х","ц","ч","ш"].includes(before)){
-      return word.slice(0,-1) + "сть";
-    } else return word.slice(0,-1) + "ность";
+    const before = word[word.length-2];
+    if(["к","п","с","т","ф","х","ц","ч","ш"].includes(before)) return word.slice(0,-1) + "сть";
+    return word.slice(0,-1) + "ность";
   }
   if(/[аеёиоуыэюя]$/.test(word)) return word + "сть";
   return word + "ость";
 }
 
+function swapLastTwo(word){
+  if(word.length<2) return word;
+  return word.slice(0,-2)+word.slice(-1)+word.slice(-2,-1);
+}
+
 function toMurin(text){
-  return text.replace(/[А-Яа-яёЁ]+/g, function(match){
+  return text.replace(/[А-Яа-яёЁ]+/g,function(match){
     const lower = match.toLowerCase();
     if(noTranslate.includes(lower) || serviceWords.includes(lower)) return match;
 
-    // исключения со склонением
-    for(let base in exceptions){
-      if(exceptions[base][lower]) return preserveCase(match, exceptions[base][lower]);
-    }
+    if(dict[lower]) return preserveCase(match,dict[lower]);
 
-    let translated = dict[lower] ? dict[lower] : addEnding(lower);
-    return preserveCase(match, translated);
+    if(pronouns.includes(lower)) return preserveCase(match,"ч"+lower.slice(1));
+
+    if(isNoun(lower)) return preserveCase(match,addEnding(lower));
+
+    return preserveCase(match,swapLastTwo(lower));
   });
 }
 
 function fromMurin(text){
-  return text.replace(/[А-Яа-яёЁ]+/g, function(match){
+  return text.replace(/[А-Яа-яёЁ]+/g,function(match){
     const lower = match.toLowerCase();
     if(noTranslate.includes(lower) || serviceWords.includes(lower)) return match;
 
-    // исключения со склонением
-    for(let base in exceptions){
-      if(exceptions[base][lower]) return preserveCase(match, base);
+    for(let key in dict){
+      if(dict[key]===lower) return preserveCase(match,key);
     }
 
-    let word = lower.replace(/ность$/,"").replace(/ость$/,"").replace(/сть$/,"");
-    Object.entries(dict).forEach(([k,v])=>{if(word===v) word=k;});
-    return preserveCase(match, word);
+    if(pronouns.includes(lower)) return preserveCase(match,lower.replace(/^ч/,""));
+
+    return preserveCase(match,swapLastTwo(lower));
   });
 }
 
 function translate(){
-  const txt = input.value.trim();
+  const txt=input.value.trim();
   if(!txt){output.textContent="Перевод появится здесь...";return;}
   output.textContent = forward ? toMurin(txt) : fromMurin(txt);
 }
