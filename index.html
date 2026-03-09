@@ -172,29 +172,6 @@ const serviceWords=["с","со","к","ко","в","во","на","по","за","о
 
 let forward=true;
 
-const keyboardMap={
-"й":"ц","ц":"у","у":"к","к":"е","е":"н","н":"г","г":"ш","ш":"щ","щ":"з","з":"х","х":"ъ",
-"ф":"ы","ы":"в","в":"а","а":"п","п":"р","р":"о","о":"л","л":"д","д":"ж","ж":"э",
-"я":"ч","ч":"с","с":"м","м":"и","и":"т","т":"ь","ь":"б","б":"ю"
-};
-
-const reverseKeyboardMap={};
-for(let k in keyboardMap){reverseKeyboardMap[keyboardMap[k]]=k;}
-
-function keyboardShift(word){
-if(word.length<2)return word;
-const a=word[word.length-2];
-const b=word[word.length-1];
-return word.slice(0,-2)+(keyboardMap[a]||a)+(keyboardMap[b]||b);
-}
-
-function keyboardUnshift(word){
-if(word.length<2)return word;
-const a=word[word.length-2];
-const b=word[word.length-1];
-return word.slice(0,-2)+(reverseKeyboardMap[a]||a)+(reverseKeyboardMap[b]||b);
-}
-
 const input=document.getElementById("input");
 const output=document.getElementById("output");
 const swapBtn=document.getElementById("swap");
@@ -258,6 +235,11 @@ if(noTranslate.includes(lower)||serviceWords.includes(lower))return match;
 
 if(dict[lower])return preserveCase(match,dict[lower]);
 
+// ГЛАГОЛЫ: ть → ч
+if(lower.endsWith("ть")){
+return preserveCase(match,lower.slice(0,-2)+"ч");
+}
+
 if(pronouns.includes(lower)){
 return preserveCase(match,"ч"+lower.slice(1));
 }
@@ -267,7 +249,7 @@ return preserveCase(match,addEnding(lower));
 }
 
 if(isAdjective(lower)||!isNoun(lower)){
-return preserveCase(match,keyboardShift(lower));
+return preserveCase(match,lower);
 }
 
 return match;
@@ -281,42 +263,34 @@ let lower=match.toLowerCase();
 
 if(noTranslate.includes(lower)||serviceWords.includes(lower)) return match;
 
-/* словарь */
 for(let key in dict){
 if(dict[key]===lower){
 return preserveCase(match,key);
 }
 }
 
-/* проверяем окончания */
-if(/(ность|ость|сть)$/.test(lower)){
+// ОБРАТНО: ч → ть
+if(lower.endsWith("ч")){
+return preserveCase(match,lower.slice(0,-1)+"ть");
+}
 
+if(/(ность|ость|сть)$/.test(lower)){
 let base=lower
 .replace(/ность$/,"")
 .replace(/ость$/,"")
 .replace(/сть$/,"");
-
-/* если после удаления окончаний есть слово в словаре */
-for(let key in dict){
-if(dict[key]===base){
-return preserveCase(match,key);
-}
-}
-
-/* просто возвращаем основу без изменения букв */
 return preserveCase(match,base);
 }
 
-/* местоимения */
 if(lower.startsWith("ч")){
 return preserveCase(match,"я"+lower.slice(1));
 }
 
-/* обратный клавиатурный сдвиг */
-return preserveCase(match,keyboardUnshift(lower));
+return preserveCase(match,lower);
 
 });
 }
+
 function translate(){
 const txt=input.value.trim();
 if(!txt){
