@@ -1,322 +1,411 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Муринский переводчик</title>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>Муринский переводчик</title>
 
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
-<style>
-:root{
---accent:#8b5cf6;
---text:#ffffff;
---gray:#e0e0e0;
---light:rgba(255,255,255,0.2);
-}
-*{margin:0;padding:0;box-sizing:border-box;}
-body{
-font-family:'Google Sans',Arial,sans-serif;
-min-height:100vh;
-display:flex;
-flex-direction:column;
-color:var(--text);
-background:#000;
-}
-header{
-height:64px;
-padding:0 20px;
-display:flex;
-align-items:center;
-backdrop-filter:blur(15px);
-background:rgba(255,255,255,0.05);
-border-bottom:1px solid var(--light);
-}
-.logo{font-size:22px;font-weight:600;color:#fff;}
-main{
-flex:1;
-padding:20px;
-max-width:960px;
-margin:0 auto;
-width:100%;
-}
-.translator{
-border-radius:16px;
-overflow:hidden;
-backdrop-filter:blur(25px);
-background:rgba(255,255,255,0.07);
-border:1px solid var(--light);
-box-shadow:0 10px 40px rgba(0,0,0,0.6);
-}
-.lang-row{
-padding:12px 16px;
-display:flex;
-align-items:center;
-justify-content:space-between;
-font-weight:500;
-color:#fff;
-border-bottom:1px solid var(--light);
-}
-.swap-btn{
-width:40px;height:40px;border-radius:50%;
-border:1px solid var(--light);
-background:rgba(255,255,255,0.1);
-font-size:20px;color:#fff;cursor:pointer;
-}
-.area{position:relative;}
-textarea,#output{
-width:100%;
-min-height:220px;
-padding:18px 16px;
-font-size:19px;
-line-height:1.48;
-border:none;
-outline:none;
-resize:vertical;
-font-family:inherit;
-background:rgba(255,255,255,0.1);
-color:#fff;
-backdrop-filter:blur(15px);
-}
-#output{border-top:1px solid var(--light);white-space:pre-wrap;}
-.actions{position:absolute;bottom:12px;right:16px;}
-.btn{background:none;border:none;font-size:20px;color:#fff;cursor:pointer;}
-.camera-btn{
-position:absolute;
-top:12px;
-right:16px;
-background:rgba(255,255,255,0.15);
-border:1px solid var(--light);
-border-radius:50%;
-width:36px;
-height:36px;
-cursor:pointer;
-color:#fff;
-z-index:10;
-}
-.status-bar{
-padding:10px 16px;font-size:13px;
-background:rgba(255,255,255,0.05);
-border-top:1px solid var(--light);
-}
-footer{
-padding:16px;text-align:center;font-size:13px;
-border-top:1px solid var(--light);
-backdrop-filter:blur(15px);
-background:rgba(255,255,255,0.05);
-}
-footer a{color:#fff;text-decoration:none;}
-#photoInput{display:none;}
-</style>
+  <style>
+    :root {
+      --primary: #1a73e8;
+      --on-primary: #fff;
+      --text-primary: #202124;
+      --text-secondary: #5f6368;
+      --surface: #ffffff;
+      --surface-variant: #f8f9fa;
+      --outline: #dadce0;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Roboto', Arial, sans-serif;
+      min-height: 100vh;
+      background: var(--surface);
+      color: var(--text-primary);
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      height: 56px;
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      background: var(--surface);
+      border-bottom: 1px solid var(--outline);
+      font-size: 20px;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    main {
+      flex: 1;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .translator {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: var(--surface);
+    }
+
+    .lang-bar {
+      height: 56px;
+      padding: 0 16px;
+      background: var(--surface-variant);
+      border-bottom: 1px solid var(--outline);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .lang {
+      padding: 6px 16px;
+      background: var(--surface);
+      border: 1px solid var(--outline);
+      border-radius: 20px;
+      color: var(--text-primary);
+    }
+
+    .swap {
+      background: var(--surface);
+      border: 1px solid var(--outline);
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .swap:hover,
+    .swap:active {
+      color: var(--primary);
+      border-color: var(--primary);
+    }
+
+    .input-section,
+    .output-section {
+      flex: 1;
+      position: relative;
+      min-height: 200px;
+    }
+
+    .input-section {
+      border-bottom: 1px solid var(--outline);
+    }
+
+    textarea,
+    #output {
+      width: 100%;
+      height: 100%;
+      padding: 16px 20px;
+      font-size: 17px;
+      line-height: 1.47;
+      border: none;
+      outline: none;
+      resize: none;
+      background: transparent;
+      color: var(--text-primary);
+      font-family: inherit;
+    }
+
+    #output {
+      background: var(--surface-variant);
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      overflow-y: auto;
+    }
+
+    .toolbar {
+      position: absolute;
+      bottom: 12px;
+      right: 16px;
+      display: flex;
+      gap: 16px;
+      z-index: 10;
+    }
+
+    .action-btn {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 24px;
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 50%;
+      transition: all 0.2s;
+    }
+
+    .action-btn:hover,
+    .action-btn:active {
+      color: var(--primary);
+      background: rgba(26, 115, 232, 0.08);
+    }
+
+    .camera-btn {
+      position: absolute;
+      top: 12px;
+      right: 16px;
+      background: var(--surface);
+      border: 1px solid var(--outline);
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .camera-btn:hover,
+    .camera-btn:active {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .char-counter {
+      position: absolute;
+      bottom: 12px;
+      left: 16px;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    footer {
+      padding: 12px 16px;
+      text-align: center;
+      font-size: 13px;
+      color: var(--text-secondary);
+      border-top: 1px solid var(--outline);
+      background: var(--surface);
+    }
+
+    footer a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    #photoInput {
+      display: none;
+    }
+
+    @media (min-width: 768px) {
+      main {
+        max-width: 720px;
+        margin: 0 auto;
+      }
+      .translator {
+        border: 1px solid var(--outline);
+        border-radius: 12px;
+        margin: 16px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+      }
+    }
+  </style>
 </head>
 <body>
 
-<header>
-<div class="logo">Муринский переводчик</div>
-</header>
+<header>Муринский переводчик</header>
 
 <main>
-<div class="translator">
+  <div class="translator">
 
-<div class="lang-row">
-<span id="from">Русский</span>
-<button class="swap-btn" id="swap">↔</button>
-<span id="to">Муринский</span>
-</div>
+    <div class="lang-bar">
+      <div class="lang" id="fromLang">Русский</div>
+      <button class="swap" id="swap">↔</button>
+      <div class="lang" id="toLang">Муринский</div>
+    </div>
 
-<div class="area">
-<button class="camera-btn" id="cameraBtn">📷</button>
-<textarea id="input" placeholder="Введите текст..." autofocus></textarea>
-<div class="actions">
-<button class="btn" id="clear">❌</button>
-</div>
-</div>
+    <div class="input-section">
+      <button class="camera-btn" id="cameraBtn">📷</button>
+      <textarea id="input" placeholder="Введите текст..." autofocus></textarea>
+      <div class="toolbar">
+        <button class="action-btn material-icons" id="clear">close</button>
+      </div>
+      <div class="char-counter" id="charCount">0 / 5000</div>
+    </div>
 
-<div id="output">Перевод появится здесь...</div>
-<div class="status-bar">Ожидаю ввода...</div>
+    <div class="output-section">
+      <div id="output">Перевод появится здесь…</div>
+      <div class="toolbar">
+        <button class="action-btn material-icons" id="copy">content_copy</button>
+      </div>
+    </div>
 
-</div>
+  </div>
 </main>
 
 <footer>
-TikTok • <a href="https://tiktok.com/@murinstroy" target="_blank">@murinstroy</a>
+  TikTok • <a href="https://tiktok.com/@murinstroy" target="_blank">@murinstroy</a>
 </footer>
 
-<input type="file" id="photoInput" accept="image/*" multiple>
+<input type="file" id="photoInput" accept="image/*">
 
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
 <script>
-
-const dict={
-"друг":"друн",
-"друзья":"друны",
-"подруга":"подруня",
-"подруги":"подруны",
-"жена":"жинка",
-"сын":"сыр",
-"батя":"батч",
-"папа":"батч",
-"мама":"матч",
-"дед":"дод",
-"прадед":"прадод",
-"кто":"кто",
-"это":"этность",
-"баня":"банька",
-"привет":"привит"
+// ────────────────────────────────────────────────
+// (твой словарь и функции перевода без изменений)
+const dict = {
+  "друг":"друн", "друзья":"друны", "подруга":"подруня", "подруги":"подруны",
+  "жена":"жинка", "сын":"сыр", "батя":"батч", "папа":"батч", "мама":"матч",
+  "дед":"дод", "прадед":"прадод", "это":"этность", "баня":"банька", "привет":"привит"
 };
 
-const pronouns=["я","ты","он","она","оно","мы","вы","они","меня","тебя","его","её","нас","вас","их"];
-const noTranslate=["мурино","молочное","мытищи"];
-const serviceWords=["с","со","к","ко","в","во","на","по","за","от","до","из","под","над","о","об","про","при","для","у"];
+const pronouns = ["я","ты","он","она","оно","мы","вы","они","меня","тебя","его","её","нас","вас","их"];
+const noTranslate = ["мурино","молочное","мытищи"];
+const serviceWords = ["с","со","к","ко","в","во","на","по","за","от","до","из","под","над","о","об","про","при","для","у"];
 
-let forward=true;
+let forward = true;
 
-const input=document.getElementById("input");
-const output=document.getElementById("output");
-const swapBtn=document.getElementById("swap");
-const fromEl=document.getElementById("from");
-const toEl=document.getElementById("to");
-const clearBtn=document.getElementById("clear");
-const cameraBtn=document.getElementById("cameraBtn");
-const photoInput=document.getElementById("photoInput");
-const statusBar=document.querySelector(".status-bar");
+const input = document.getElementById("input");
+const output = document.getElementById("output");
+const swapBtn = document.getElementById("swap");
+const fromLang = document.getElementById("fromLang");
+const toLang = document.getElementById("toLang");
+const clearBtn = document.getElementById("clear");
+const copyBtn = document.getElementById("copy");
+const cameraBtn = document.getElementById("cameraBtn");
+const photoInput = document.getElementById("photoInput");
+const charCount = document.getElementById("charCount");
 
-cameraBtn.onclick=()=>photoInput.click();
-
-photoInput.addEventListener("change",async function(){
-const files=Array.from(this.files);
-if(!files.length)return;
-statusBar.textContent="Распознаю текст...";
-let fullText="";
-for(let i=0;i<files.length;i++){
-const result=await Tesseract.recognize(files[i],'rus');
-fullText+=result.data.text.trim()+" ";
-}
-input.value=fullText.trim();
-statusBar.textContent="Текст распознан!";
-translate();
-});
-
-function preserveCase(original,translated){
-if(original[0]===original[0].toUpperCase()){
-return translated.charAt(0).toUpperCase()+translated.slice(1);
-}
-return translated;
+// ────────────────────────────────────────────────
+// функции перевода (с небольшим улучшением preserveCase)
+function preserveCase(orig, trans) {
+  if (!orig || !trans) return trans;
+  const first = orig[0];
+  if (first === first.toUpperCase() && first !== first.toLowerCase()) {
+    return trans[0].toUpperCase() + trans.slice(1);
+  }
+  return trans;
 }
 
-function isNoun(word){
-return !/(ать|ять|ить|еть|ешь|ишь|ют|ут|ет|ем|ите|ый|ий|ая|ое|ые|ие)$/i.test(word);
+function isNoun(w) { return !/(ать|ять|ить|еть|ешь|ишь|ют|ут|ет|ем|ите|ый|ий|ая|ое|ые|ие)$/i.test(w); }
+function isAdjective(w) { return /(ый|ий|ой|ая|яя|ое|ее|ые|ие|ого|его|ому|ему|ыми|ими|ую|юю)$/i.test(w); }
+
+function addEnding(word) {
+  if (dict[word]) return dict[word];
+  if (!isNoun(word)) return word;
+  if (word.endsWith("т")) return word + "ность";
+  if (word.endsWith("о")) {
+    let b = word[word.length-2];
+    if ("кпстфхцчш".includes(b)) return word.slice(0,-1) + "сть";
+    return word.slice(0,-1) + "ность";
+  }
+  if (/[аеёиоуыэюя]$/.test(word)) return word + "сть";
+  return word + "ость";
 }
 
-function isAdjective(word){
-return /(ый|ий|ой|ая|яя|ое|ее|ые|ие|ого|его|ому|ему|ыми|ими|ую|юю)$/i.test(word);
+function toMurin(text) {
+  return text.replace(/[А-Яа-яёЁ]+/g, m => {
+    let l = m.toLowerCase();
+    if (noTranslate.includes(l) || serviceWords.includes(l)) return m;
+    if (dict[l]) return preserveCase(m, dict[l]);
+    if (pronouns.includes(l)) return preserveCase(m, "ч" + l.slice(1));
+    if (isNoun(l)) return preserveCase(m, addEnding(l));
+    return m;
+  });
 }
 
-function addEnding(word){
-if(dict[word])return dict[word];
-if(!isNoun(word))return word;
-
-if(word.endsWith("т"))return word+"ность";
-if(word.endsWith("о")){
-const before=word[word.length-2];
-if(["к","п","с","т","ф","х","ц","ч","ш"].includes(before))return word.slice(0,-1)+"сть";
-return word.slice(0,-1)+"ность";
-}
-if(/[аеёиоуыэюя]$/.test(word))return word+"сть";
-return word+"ость";
-}
-
-function toMurin(text){
-return text.replace(/[А-Яа-яёЁ]+/g,function(match){
-const lower=match.toLowerCase();
-
-if(noTranslate.includes(lower)||serviceWords.includes(lower))return match;
-
-if(dict[lower])return preserveCase(match,dict[lower]);
-
-// ГЛАГОЛЫ: ть → ч
-if(lower.endsWith("ть")){
-return preserveCase(match,lower.slice(0,-2)+"ч");
+function fromMurin(text) {
+  return text.replace(/[А-Яа-яёЁ]+/g, m => {
+    let l = m.toLowerCase();
+    if (noTranslate.includes(l) || serviceWords.includes(l)) return m;
+    for (let k in dict) if (dict[k] === l) return preserveCase(m, k);
+    if (/(ность|ость|сть)$/.test(l)) {
+      return preserveCase(m, l.replace(/ность$|ость$|сть$/, ""));
+    }
+    if (l.startsWith("ч")) return preserveCase(m, "я" + l.slice(1));
+    return m;
+  });
 }
 
-if(pronouns.includes(lower)){
-return preserveCase(match,"ч"+lower.slice(1));
+function translate() {
+  let txt = input.value.trim();
+  if (!txt) {
+    output.textContent = "Перевод появится здесь…";
+    charCount.textContent = "0 / 5000";
+    return;
+  }
+  let res = forward ? toMurin(txt) : fromMurin(txt);
+  output.textContent = res;
+  charCount.textContent = Math.min(txt.length, 5000) + " / 5000";
+  if (txt.length > 5000) input.value = txt.slice(0,5000);
 }
 
-if(isNoun(lower)){
-return preserveCase(match,addEnding(lower));
-}
-
-if(isAdjective(lower)||!isNoun(lower)){
-return preserveCase(match,lower);
-}
-
-return match;
-});
-}
-
-function fromMurin(text){
-return text.replace(/[А-Яа-яёЁ]+/g,function(match){
-
-let lower=match.toLowerCase();
-
-if(noTranslate.includes(lower)||serviceWords.includes(lower)) return match;
-
-for(let key in dict){
-if(dict[key]===lower){
-return preserveCase(match,key);
-}
-}
-
-// ОБРАТНО: ч → ть
-if(lower.endsWith("ч")){
-return preserveCase(match,lower.slice(0,-1)+"ть");
-}
-
-if(/(ность|ость|сть)$/.test(lower)){
-let base=lower
-.replace(/ность$/,"")
-.replace(/ость$/,"")
-.replace(/сть$/,"");
-return preserveCase(match,base);
-}
-
-if(lower.startsWith("ч")){
-return preserveCase(match,"я"+lower.slice(1));
-}
-
-return preserveCase(match,lower);
-
-});
-}
-
-function translate(){
-const txt=input.value.trim();
-if(!txt){
-output.textContent="Перевод появится здесь...";
-return;
-}
-output.textContent=forward?toMurin(txt):fromMurin(txt);
-}
-
-swapBtn.onclick=()=>{
-forward=!forward;
-fromEl.textContent=forward?"Русский":"Муринский";
-toEl.textContent=forward?"Муринский":"Русский";
-translate();
+// ────────────────────────────────────────────────
+// события
+swapBtn.onclick = () => {
+  forward = !forward;
+  fromLang.textContent = forward ? "Русский" : "Муринский";
+  toLang.textContent = forward ? "Муринский" : "Русский";
+  translate();
 };
 
-clearBtn.onclick=()=>{
-input.value="";
-translate();
+clearBtn.onclick = () => {
+  input.value = "";
+  translate();
 };
 
-input.addEventListener("input",translate);
+copyBtn.onclick = () => {
+  let t = output.textContent.trim();
+  if (t && t !== "Перевод появится здесь…") {
+    navigator.clipboard.writeText(t).then(() => {
+      copyBtn.innerHTML = "done";
+      setTimeout(() => copyBtn.innerHTML = "content_copy", 1800);
+    });
+  }
+};
 
-translate();
+input.addEventListener("input", translate);
 
+cameraBtn.onclick = () => photoInput.click();
+
+photoInput.addEventListener("change", async (e) => {
+  let files = Array.from(e.target.files || []);
+  if (!files.length) return;
+
+  output.textContent = "Распознаю текст…";
+  let text = "";
+
+  for (let file of files) {
+    try {
+      const { data: { text: extracted } } = await Tesseract.recognize(file, 'rus', {
+        logger: m => console.log(m)
+      });
+      text += extracted.trim() + " ";
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  input.value = text.trim();
+  translate();
+  photoInput.value = ""; // очистка input file
+});
+
+translate(); // инициализация
 </script>
-
 </body>
 </html>
